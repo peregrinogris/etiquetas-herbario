@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Etiquetas Pro</title>
+    <title>Generador de Etiquetas para Herbario</title>
 
     <!-- LOAD ALL FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -271,7 +271,7 @@
     <div id="app">
         <div class="controls">
             <div class="header-title">
-                <span>Generador de Etiquetas</span>
+                <h1>Generador de Etiquetas para Herbario</h1>
                 <button class="btn-outline" @click="showSettings = !showSettings">
                     {{ showSettings ? '✖ Cerrar' : '⚙️ Configuración' }}
                 </button>
@@ -372,10 +372,10 @@
             </div>
 
             <!-- PRINT ACTIONS ROW -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <div v-if="labels.length > 0" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
                 <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal; text-transform: none; font-size: 14px; margin: 0;">
                     <input type="checkbox" v-model="showSummary" style="width: auto; margin-right: 8px;">
-                    Incluir lista para orden de entrega.
+                    Incluir lista "Orden de entrega"
                 </label>
                 <button class="btn-secondary" style="width: auto; padding-left: 30px; padding-right: 30px;" @click="print">🖨️ Imprimir</button>
             </div>
@@ -594,7 +594,7 @@
 
                 const parseCSVRow = (text, delimiter) => {
                     const d = delimiter === '\t' ? '\\t' : ',';
-                    const re = new RegExp(`(?:\\s*"([^"]*)"\\s*|([^${d}"]*))\\s*(?:${d}|$)`, 'g');
+                    const re = new RegExp(`(?:\\s*"([^"]*)"\\s*|([^${d}"]*))(?:${d}|$)`, 'g');
                     const a = [];
                     text.replace(re, (m0, m1, m2) => {
                         if (m0 === "" && a.length > 0) return '';
