@@ -162,10 +162,23 @@
 
         /* --- PRINT MEDIA --- */
         @media print {
+            html, body { height: 100%; }
             body { background: white; padding: 0; margin: 0; }
             .controls { display: none; }
-            .labels-grid { display: block; }
-            .label-card { float: left; margin: 0.2cm; page-break-inside: avoid; border: 1px solid #000; }
+            .labels-grid {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center; /* Centers items horizontally */
+                align-content: center; /* Centers items vertically */
+                min-height: 100%;
+                margin: 0 auto;
+            }
+            .label-card {
+                margin: 0.2cm;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                border: 1px solid #000;
+            }
         }
     </style>
 </head>
