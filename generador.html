@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Etiquetas (10x7cm)</title>
+    <title>Generador Etiquetas (Importar Directo)</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
     <style>
         /* General Page Styling */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e0e0e0; /* Darker background to see white labels better */
+            background-color: #e0e0e0;
             padding: 20px;
             color: #333;
         }
@@ -29,13 +31,26 @@
             text-align: center;
         }
 
-        input[type="file"] {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px dashed #ccc;
-            border-radius: 4px;
-            width: 80%;
+        .input-group {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #f9f9f9;
         }
+
+        textarea {
+            width: 90%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        h3 { margin-top: 0; color: #555; font-size: 16px; }
 
         button {
             background-color: #28a745;
@@ -45,51 +60,37 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 10px;
         }
+        button.secondary { background-color: #007bff; }
+        button:hover { opacity: 0.9; }
 
-        button:hover {
-            background-color: #218838;
-        }
-
-        /* Container for the sheet */
+        /* Label Container */
         #labels-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px; /* Space between labels on screen */
+            gap: 10px;
             justify-content: center;
         }
 
-        /* --- THE LABEL STYLING --- */
+        /* --- LABEL STYLING (10x7cm) --- */
         .label-card {
             background: white;
             border: 1px solid #000;
-
-            /* EXACT DIMENSIONS */
             width: 10cm;
             height: 7cm;
-
-            /* INNER PADDING */
             padding: 0.5cm;
-
-            /* Creates the box model so padding is included in the 10x7 size */
             box-sizing: border-box;
-
             font-family: 'EB Garamond', serif;
-            font-size: 16px; /* Slightly smaller font to ensure fit in 7cm height */
+            font-size: 16px;
             line-height: 1.3;
-            overflow: hidden; /* Hide overflow if text is too long */
+            overflow: hidden;
             position: relative;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Screen only shadow */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
 
-        .label-row {
-            margin-bottom: 5px;
-        }
-
-        .label-key {
-            font-weight: bold;
-            color: #000;
-        }
+        .label-row { margin-bottom: 5px; }
+        .label-key { font-weight: 700; color: #000; }
 
         .header-row {
             display: flex;
@@ -100,22 +101,13 @@
 
         /* PRINT STYLES */
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .controls {
-                display: none;
-            }
-            #labels-container {
-                gap: 0;
-                display: block; /* Let browser flow them naturally */
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .controls { display: none; }
+            #labels-container { gap: 0; display: block; }
             .label-card {
                 box-shadow: none;
-                float: left; /* Tries to pack them side by side */
-                margin: 0.2cm; /* Tiny margin for cutting */
+                float: left;
+                margin: 0.2cm;
                 page-break-inside: avoid;
             }
         }
@@ -124,54 +116,85 @@
 <body>
 
     <div class="controls">
-        <h2>Generador de Etiquetas (Formato 10x7 cm)</h2>
-        <p>1. Sube tu CSV (separado por comas).</p>
-        <input type="file" id="csvInput" accept=".csv">
-        <br><br>
-        <button onclick="window.print()">Imprimir</button>
+        <h2>Generador de Etiquetas</h2>
+
+        <div class="input-group">
+            <h3>Opción 1: Copiar y Pegar desde Google Sheets / Excel</h3>
+            <p style="font-size: 0.9em; color: #666;">Selecciona tus celdas (incluyendo encabezados), copia (Ctrl+C) y pega aquí:</p>
+            <textarea id="pasteInput" placeholder="Colector	Nº	Familia	Nombre Científico	Nombre Vulgar	Fecha y Lugar de Colección	Observación..."></textarea>
+            <br>
+            <button class="secondary" onclick="readPaste()">Generar desde Texto Pegado</button>
+        </div>
+
+        <div style="margin: 10px; color: #aaa;">— O —</div>
+
+        <div class="input-group">
+            <h3>Opción 2: Subir archivo CSV</h3>
+            <input type="file" id="csvInput" accept=".csv">
+        </div>
+
+        <button onclick="window.print()" style="background-color: #333;">🖨️ Imprimir Etiquetas</button>
     </div>
 
     <div id="labels-container"></div>
 
     <script>
+        // --- EVENT LISTENERS ---
         document.getElementById('csvInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
-                processCSV(e.target.result);
-            };
+            reader.onload = (e) => processData(e.target.result, ','); // CSV usually comma
             reader.readAsText(file);
         });
 
-        function processCSV(csvText) {
-            const lines = csvText.split(/\r\n|\n/);
-            const headers = lines[0].split(',').map(h => h.trim());
+        function readPaste() {
+            const text = document.getElementById('pasteInput').value;
+            if (!text.trim()) {
+                alert("Por favor pega los datos primero.");
+                return;
+            }
+            // Google Sheets copy/paste uses TABS as delimiter
+            processData(text, '\t');
+        }
+
+        // --- CORE LOGIC ---
+        function processData(rawText, fallbackDelimiter) {
+            const lines = rawText.split(/\r\n|\n/);
+            if (lines.length < 2) return;
+
+            // Auto-detect delimiter based on first line (Header)
+            // If the clipboard has tabs, uses tab. If file has commas, uses comma.
+            let delimiter = fallbackDelimiter;
+            if (lines[0].indexOf('\t') > -1) delimiter = '\t';
+            else if (lines[0].indexOf(',') > -1) delimiter = ',';
+
+            const headers = lines[0].split(delimiter).map(h => h.trim());
             const container = document.getElementById('labels-container');
             container.innerHTML = '';
 
+            // Find indexes (case insensitive search for robustness)
             const map = {
-                colector: headers.indexOf('Colector'),
-                numero: headers.indexOf('Nº'),
-                familia: headers.indexOf('Familia'),
-                cientifico: headers.indexOf('Nombre Científico'),
-                vulgar: headers.indexOf('Nombre Vulgar'),
-                fecha: headers.indexOf('Fecha'),
-                lugar: headers.indexOf('Lugar de Colección'),
-                obs: headers.indexOf('Observación')
+                colector: findIndex(headers, 'Colector'),
+                numero: findIndex(headers, 'Número'),
+                familia: findIndex(headers, 'Familia'),
+                cientifico: findIndex(headers, 'Nombre Científico'),
+                vulgar: findIndex(headers, 'Nombre Vulgar'),
+                fecha: findIndex(headers, 'Fecha'),
+                lugar: findIndex(headers, 'Lugar de Colección'),
+                obs: findIndex(headers, 'Observación')
             };
 
             for (let i = 1; i < lines.length; i++) {
                 const rowRaw = lines[i];
                 if (!rowRaw.trim()) continue;
 
-                const data = parseCSVRow(rowRaw);
+                // Parse row using the detected delimiter
+                const data = parseRow(rowRaw, delimiter);
 
                 const labelDiv = document.createElement('div');
                 labelDiv.className = 'label-card';
 
-                // Process Scientific Name specifically
                 const rawSciName = safeGet(data, map.cientifico);
                 const formattedSciName = formatScientificName(rawSciName);
 
@@ -195,7 +218,7 @@
                     </div>
 
                     <div class="label-row">
-                        <span class="label-key">Fecha y Lugar de Colección:</span> ${safeGet(data, map.fecha)}. ${safeGet(data, map.lugar)}
+                        <span class="label-key">Fecha y Lugar de Colección:</span>  ${safeGet(data, map.fecha)}. ${safeGet(data, map.lugar)}
                     </div>
 
                     <div class="label-row">
@@ -207,40 +230,55 @@
             }
         }
 
-        // Logic: Italicize only the first 2 words
+        // --- HELPERS ---
+
+        // Find header index helper
+        function findIndex(headers, key) {
+            return headers.findIndex(h => h.toLowerCase() === key.toLowerCase());
+        }
+
+        // Format Scientific Name (Italicize first 2 words)
         function formatScientificName(fullName) {
             if (!fullName) return '';
-
             const words = fullName.split(' ');
-
-            // If less than 2 words, just italicize what we have
-            if (words.length <= 2) {
-                return `<i>${fullName}</i>`;
-            }
-
-            // Slice first two words for italics
+            if (words.length <= 2) return `<i>${fullName}</i>`;
             const italicPart = words.slice(0, 2).join(' ');
-            // The rest remains normal
             const normalPart = words.slice(2).join(' ');
-
             return `<i>${italicPart}</i> ${normalPart}`;
         }
 
         function safeGet(rowArray, index) {
             if (index === -1 || !rowArray[index]) return '';
-            return rowArray[index].replace(/^"|"$/g, '');
+            return rowArray[index].replace(/^"|"$/g, '').trim();
         }
 
-        function parseCSVRow(text) {
-            const re_value = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,'"]*))\s*(?:,|$)/g;
+        // Advanced Row Parser (Handles quotes and delimiters)
+        function parseRow(text, delimiter) {
+            const d = delimiter === '\t' ? '\\t' : ',';
+            const re_value = new RegExp(`(?:\\s*"([^"]*)"\\s*|([^${d}"]*))\\s*(?:${d}|$)`, 'g');
+
             const a = [];
-            text.replace(re_value, function(m0, m1, m2, m3) {
-                if (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
-                else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
-                else if (m3 !== undefined) a.push(m3);
+            text.replace(re_value, function(m0, m1, m2) {
+                // m1 = Double Quoted content
+                // m2 = Unquoted content
+
+                // Stop if we hit an empty match at the end (browser regex engine quirk)
+                if (m0 === "" && a.length > 0) return '';
+
+                if (m1 !== undefined) {
+                    // Standard CSV escapes double quotes as "", but some Excel versions use \"
+                    // We'll strip common escapes here.
+                    a.push(m1.replace(/""/g, '"').replace(/\\"/g, '"'));
+                }
+                else if (m2 !== undefined) {
+                    a.push(m2.trim());
+                }
                 return '';
             });
-            if (/,\s*$/.test(text)) a.push('');
+
+            // Handle edge case: row ends with a delimiter (meaning last column is empty)
+            if (new RegExp(`${d}\\s*$`).test(text)) a.push('');
+
             return a;
         }
     </script>
