@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador Etiquetas Pro</title>
 
+    <!-- LOAD ALL FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
     <style>
@@ -20,12 +22,14 @@
             --border: #bdc3c7;
             --error: #e74c3c;
 
-            /* Default Label Variables (Fallbacks) */
+            /* Default Label Variables */
             --lbl-width: 10cm;
             --lbl-height: 7cm;
             --lbl-padding: 0.5cm;
             --lbl-border-w: 1px;
             --lbl-border-s: solid;
+            --lbl-font: 'EB Garamond', serif;
+            --lbl-font-size: 16px;
         }
 
         body {
@@ -182,12 +186,14 @@
             border-style: var(--lbl-border-s);
             border-color: #000;
 
+            /* DYNAMIC FONT */
+            font-family: var(--lbl-font);
+            font-size: var(--lbl-font-size);
+
             box-sizing: border-box;
-            font-family: 'EB Garamond', serif;
             line-height: 1.2;
             overflow: hidden;
             position: relative;
-            font-size: 16px;
         }
 
         .label-key { font-weight: 700; color: #000; }
@@ -228,6 +234,18 @@
 
             <!-- SETTINGS PANEL -->
             <div class="settings-panel" v-if="showSettings">
+                <div class="setting-item">
+                    <label>Tipografía</label>
+                    <select v-model="settings.fontFamily">
+                        <option value="'EB Garamond', serif">EB Garamond</option>
+                        <option value="'PT Serif', serif">PT Serif</option>
+                        <option value="'Courier Prime', monospace">Courier Prime</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Tamaño Fuente (px)</label>
+                    <input type="number" v-model="settings.fontSize" step="0.5">
+                </div>
                 <div class="setting-item">
                     <label>Ancho (cm)</label>
                     <input type="number" v-model="settings.width" step="0.5">
@@ -354,7 +372,9 @@
                     height: 7,
                     padding: 0.5,
                     borderWidth: 1,
-                    borderStyle: 'solid'
+                    borderStyle: 'solid',
+                    fontFamily: "'EB Garamond', serif",
+                    fontSize: 16
                 };
                 const settings = ref({ ...defaultSettings });
 
@@ -402,14 +422,15 @@
                 const updateRootStyles = () => {
                     const s = settings.value;
                     const root = document.documentElement;
-                    // Batch update using cssText - this applies inline styles to <html>
-                    // Variables defined in <style>:root {} (colors) remain valid
+                    // Batch update via cssText on root element
                     root.style.cssText = `
                         --lbl-width: ${s.width}cm;
                         --lbl-height: ${s.height}cm;
                         --lbl-padding: ${s.padding}cm;
                         --lbl-border-w: ${s.borderWidth}px;
                         --lbl-border-s: ${s.borderStyle};
+                        --lbl-font: ${s.fontFamily};
+                        --lbl-font-size: ${s.fontSize}px;
                     `;
                 };
 
