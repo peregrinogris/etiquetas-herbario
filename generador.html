@@ -500,7 +500,16 @@
                             fechaLugar: [safeGet(d, map.fecha), safeGet(d, map.lugar)].filter(Boolean).join('. '),
                             obs: safeGet(d, map.obs)
                         };
-                    }).filter(Boolean);
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => {
+                        const famDiff = (a.familia || '').localeCompare(b.familia || '');
+                        if (famDiff !== 0) return famDiff;
+
+                        const sciA = (a.sciNameItalic + ' ' + a.sciNameNormal).trim();
+                        const sciB = (b.sciNameItalic + ' ' + b.sciNameNormal).trim();
+                        return sciA.localeCompare(sciB);
+                    });
                 };
 
                 // --- UTILS ---
