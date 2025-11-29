@@ -19,6 +19,13 @@
             --surface: #ffffff;
             --border: #bdc3c7;
             --error: #e74c3c;
+
+            /* Default Label Variables (Fallbacks) */
+            --lbl-width: 10cm;
+            --lbl-height: 7cm;
+            --lbl-padding: 0.5cm;
+            --lbl-border-w: 1px;
+            --lbl-border-s: solid;
         }
 
         body {
@@ -45,6 +52,9 @@
             border-bottom: 2px solid var(--bg);
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .input-group {
@@ -60,7 +70,7 @@
             letter-spacing: 0.5px;
         }
 
-        input[type="text"], textarea {
+        input[type="text"], input[type="number"], select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border);
@@ -74,6 +84,24 @@
             font-family: 'Consolas', monospace;
             font-size: 13px;
             resize: vertical;
+        }
+
+        /* --- SETTINGS PANEL --- */
+        .settings-panel {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* --- DRAG & DROP ZONE --- */
@@ -116,6 +144,7 @@
         .btn-primary { background-color: var(--accent); color: white; }
         .btn-secondary { background-color: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--primary); }
+        .btn-icon { background: transparent; border: none; font-size: 1.2rem; padding: 5px; color: var(--primary); }
 
         /* --- MAPPING STATUS DIAGNOSTIC --- */
         .status-panel {
@@ -141,19 +170,24 @@
             justify-content: center;
         }
 
-        /* --- LABEL CARD (10x7cm) --- */
+        /* --- LABEL CARD --- */
         .label-card {
             background: white;
-            border: 1px solid #000;
-            width: 10cm;
-            height: 7cm;
+
+            /* DYNAMIC STYLES via CSS Variables */
+            width: var(--lbl-width);
+            height: var(--lbl-height);
+            padding: var(--lbl-padding);
+            border-width: var(--lbl-border-w);
+            border-style: var(--lbl-border-s);
+            border-color: #000;
+
             box-sizing: border-box;
             font-family: 'EB Garamond', serif;
             line-height: 1.2;
             overflow: hidden;
             position: relative;
             font-size: 16px;
-            padding: 0.5cm;
         }
 
         .label-key { font-weight: 700; color: #000; }
@@ -168,8 +202,8 @@
             .labels-grid {
                 display: flex;
                 flex-wrap: wrap;
-                justify-content: center; /* Centers items horizontally */
-                align-content: center; /* Centers items vertically */
+                justify-content: center;
+                align-content: center;
                 min-height: 100%;
                 margin: 0 auto;
             }
@@ -177,7 +211,6 @@
                 margin: 0.2cm;
                 page-break-inside: avoid;
                 break-inside: avoid;
-                border: 1px solid #000;
             }
         }
     </style>
@@ -186,7 +219,45 @@
 
     <div id="app">
         <div class="controls">
-            <h2 class="header-title">Generador de Etiquetas</h2>
+            <div class="header-title">
+                <span>Generador de Etiquetas</span>
+                <button class="btn-outline" @click="showSettings = !showSettings">
+                    {{ showSettings ? '✖ Cerrar' : '⚙️ Configuración' }}
+                </button>
+            </div>
+
+            <!-- SETTINGS PANEL -->
+            <div class="settings-panel" v-if="showSettings">
+                <div class="setting-item">
+                    <label>Ancho (cm)</label>
+                    <input type="number" v-model="settings.width" step="0.5">
+                </div>
+                <div class="setting-item">
+                    <label>Alto (cm)</label>
+                    <input type="number" v-model="settings.height" step="0.5">
+                </div>
+                <div class="setting-item">
+                    <label>Relleno (cm)</label>
+                    <input type="number" v-model="settings.padding" step="0.1">
+                </div>
+                <div class="setting-item">
+                    <label>Grosor Borde (px)</label>
+                    <input type="number" v-model="settings.borderWidth" step="1">
+                </div>
+                <div class="setting-item">
+                    <label>Estilo Borde</label>
+                    <select v-model="settings.borderStyle">
+                        <option value="solid">Sólido</option>
+                        <option value="dashed">Discontinuo</option>
+                        <option value="dotted">Punteado</option>
+                        <option value="double">Doble</option>
+                        <option value="none">Ninguno</option>
+                    </select>
+                </div>
+                <div class="setting-item" style="display: flex; align-items: flex-end;">
+                    <button class="btn-outline" style="width: 100%; font-size: 12px;" @click="resetSettings">Restaurar</button>
+                </div>
+            </div>
 
             <!-- PERSISTENT COLLECTOR INPUT -->
             <div class="input-group">
@@ -203,7 +274,6 @@
                     v-if="inputMode === 'paste'"
                     v-model="pasteInput"
                     placeholder="Pegar celdas desde Excel/Google Sheets aquí..."
-                    @paste="handlePaste"
                 ></textarea>
 
                 <!-- Tab 2: Drag & Drop File -->
@@ -276,6 +346,17 @@
                 const inputMode = ref('paste'); // 'paste' | 'file'
                 const isDragging = ref(false);
                 const fileInput = ref(null);
+                const showSettings = ref(false);
+
+                // Settings State with Defaults
+                const defaultSettings = {
+                    width: 10,
+                    height: 7,
+                    padding: 0.5,
+                    borderWidth: 1,
+                    borderStyle: 'solid'
+                };
+                const settings = ref({ ...defaultSettings });
 
                 // Diagnostic state to show user which columns were found
                 const columnStatus = ref({
@@ -285,13 +366,31 @@
 
                 // --- PERSISTENCE ---
                 onMounted(() => {
-                    const saved = localStorage.getItem('label_collector');
-                    if (saved) globalCollector.value = saved;
+                    // Load Collector
+                    const savedCol = localStorage.getItem('label_collector');
+                    if (savedCol) globalCollector.value = savedCol;
+
+                    // Load Settings
+                    const savedSettings = localStorage.getItem('label_settings');
+                    if (savedSettings) {
+                        try {
+                            settings.value = { ...defaultSettings, ...JSON.parse(savedSettings) };
+                        } catch(e) { console.error("Error loading settings", e); }
+                    }
+
+                    // Initial Root Style Update
+                    updateRootStyles();
                 });
 
                 watch(globalCollector, (newVal) => {
                     localStorage.setItem('label_collector', newVal);
                 });
+
+                // Deep watch on settings to save & update CSS variables
+                watch(settings, (newVal) => {
+                    localStorage.setItem('label_settings', JSON.stringify(newVal));
+                    updateRootStyles();
+                }, { deep: true });
 
                 // --- COMPUTED ---
                 const hasData = computed(() => {
@@ -300,10 +399,25 @@
                 });
 
                 // --- ACTIONS ---
+                const updateRootStyles = () => {
+                    const s = settings.value;
+                    const root = document.documentElement;
+                    // Batch update using cssText - this applies inline styles to <html>
+                    // Variables defined in <style>:root {} (colors) remain valid
+                    root.style.cssText = `
+                        --lbl-width: ${s.width}cm;
+                        --lbl-height: ${s.height}cm;
+                        --lbl-padding: ${s.padding}cm;
+                        --lbl-border-w: ${s.borderWidth}px;
+                        --lbl-border-s: ${s.borderStyle};
+                    `;
+                };
+
                 const print = () => window.print();
                 const toggleMode = () => inputMode.value = inputMode.value === 'paste' ? 'file' : 'paste';
                 const clear = () => { labels.value = []; pasteInput.value = ''; };
                 const triggerFileSelect = () => fileInput.value.click();
+                const resetSettings = () => settings.value = { ...defaultSettings };
 
                 // --- FILE HANDLERS ---
                 const handleFileSelect = (e) => processFile(e.target.files[0]);
@@ -398,7 +512,8 @@
 
                 return {
                     globalCollector, pasteInput, labels, inputMode, isDragging, fileInput, columnStatus, hasData,
-                    processData, toggleMode, clear, print,
+                    showSettings, settings,
+                    processData, toggleMode, clear, print, resetSettings,
                     handleFileSelect, handleDrop, triggerFileSelect
                 };
             }
