@@ -166,6 +166,14 @@
         .status-dot.found { background: var(--accent); }
         .status-dot.missing { background: var(--error); }
 
+        /* --- PRINT SUMMARY PAGE --- */
+        .print-summary {
+            display: none; /* Hidden on screen */
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 21cm;
+            margin: 0 auto;
+        }
+
         /* --- LABEL GRID --- */
         .labels-grid {
             display: flex;
@@ -202,15 +210,52 @@
 
         /* --- PRINT MEDIA --- */
         @media print {
-            html, body { height: 100%; }
+            html, body {
+                /* Removed forced height 100% to allow flow */
+                height: auto;
+                overflow: visible;
+            }
             body { background: white; padding: 0; margin: 0; }
             .controls { display: none; }
+
+            /* Summary Page Logic */
+            .print-summary {
+                display: block;
+                break-after: page;
+                page-break-after: always; /* Forces new page after list */
+                padding: 1cm; /* Reduced padding for landscape */
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .print-summary h1 {
+                font-size: 18pt;
+                color: #000;
+                margin-bottom: 0.2cm;
+                break-after: avoid;
+                border-bottom: 2px solid black;
+            }
+
+            /* Two Column Layout */
+            .print-summary ol {
+                font-size: 10pt; /* Smaller font for checklist */
+                line-height: 1.5;
+                color: #000;
+                column-count: 2;
+                column-gap: 1cm;
+                margin-top: 0;
+            }
+            .print-summary li {
+                margin-bottom: 2px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
             .labels-grid {
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: center;
                 align-content: center;
-                min-height: 100%;
+                min-height: 100vh; /* Only vertically center labels if they take up the whole page */
                 margin: 0 auto;
             }
             .label-card {
@@ -326,7 +371,27 @@
                 </div>
             </div>
 
-            <button class="btn-secondary" style="width: 100%; margin-top: 20px;" @click="print">🖨️ Imprimir</button>
+            <!-- PRINT ACTIONS ROW -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal; text-transform: none; font-size: 14px; margin: 0;">
+                    <input type="checkbox" v-model="showSummary" style="width: auto; margin-right: 8px;">
+                    Incluir lista para orden de entrega.
+                </label>
+                <button class="btn-secondary" style="width: auto; padding-left: 30px; padding-right: 30px;" @click="print">🖨️ Imprimir</button>
+            </div>
+        </div>
+
+        <!-- PRINT SUMMARY PAGE (Hidden on Screen, dependent on checkbox) -->
+        <div class="print-summary" v-if="labels.length > 0 && showSummary">
+            <h1>Orden de entrega</h1>
+            <ol>
+                <li v-for="label in labels" :key="label.numero">
+                    <!-- Scientific Name -->
+                    <i>{{ label.sciNameItalic }}</i>{{ label.sciNameNormal ? ' ' + label.sciNameNormal : '' }}
+                    <!-- Number at end -->
+                    <span style="color: #666; font-size: 0.9em; margin-left: 5px;">#{{ label.numero }}</span>
+                </li>
+            </ol>
         </div>
 
         <!-- LABELS OUTPUT -->
@@ -365,6 +430,7 @@
                 const isDragging = ref(false);
                 const fileInput = ref(null);
                 const showSettings = ref(false);
+                const showSummary = ref(false); // Default disabled
 
                 // Settings State with Defaults
                 const defaultSettings = {
@@ -542,7 +608,7 @@
 
                 return {
                     globalCollector, pasteInput, labels, inputMode, isDragging, fileInput, columnStatus, hasData,
-                    showSettings, settings,
+                    showSettings, settings, showSummary,
                     processData, toggleMode, clear, print, resetSettings,
                     handleFileSelect, handleDrop, triggerFileSelect
                 };
