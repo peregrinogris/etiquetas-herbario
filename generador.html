@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Etiquetas Vue3</title>
+    <title>Generador Etiquetas Pro</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,79 +11,129 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #e0e0e0;
-            padding: 20px;
-            color: #333;
+        /* --- CORE VARIABLES --- */
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #ecf0f1;
+            --surface: #ffffff;
+            --border: #bdc3c7;
+            --error: #e74c3c;
         }
 
-        .controls {
-            background: white;
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin: 0 auto 30px auto;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        /* --- CONTROLS UI --- */
+        .controls {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin: 0 auto 2rem auto;
             max-width: 800px;
         }
 
+        .header-title {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
         .input-group {
-            margin: 15px 0;
-            padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background: #f9f9f9;
+            margin-bottom: 1.5rem;
         }
 
         label {
-            font-weight: bold;
+            font-weight: 600;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        input[type="text"] {
+        input[type="text"], textarea {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             box-sizing: border-box;
+            font-family: inherit;
         }
 
         textarea {
-            width: 100%;
             height: 100px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
             resize: vertical;
-            box-sizing: border-box;
+        }
+
+        /* --- DRAG & DROP ZONE --- */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: #f0f9f4;
+        }
+
+        .drop-zone p { margin: 0; color: #7f8c8d; }
+        .hidden-input { display: none; }
+
+        /* --- BUTTONS --- */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
         }
 
         button {
-            background-color: #28a745;
-            color: white;
-            border: none;
             padding: 10px 20px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            margin-top: 10px;
+            font-weight: 600;
+            border: none;
+            transition: transform 0.1s;
         }
 
-        button.secondary {
-            background-color: #007bff;
+        button:active { transform: translateY(1px); }
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-secondary { background-color: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--primary); }
+
+        /* --- MAPPING STATUS DIAGNOSTIC --- */
+        .status-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between
         }
 
-        button.print {
-            background-color: #333;
-            width: 100%;
-            margin-top: 20px;
-            padding: 15px;
-            font-size: 16px;
-        }
+        .status-item { display: flex; align-items: center; gap: 5px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; }
+        .status-dot.found { background: var(--accent); }
+        .status-dot.missing { background: var(--error); }
 
+        /* --- LABEL GRID --- */
         .labels-grid {
             display: flex;
             flex-wrap: wrap;
@@ -91,7 +141,7 @@
             justify-content: center;
         }
 
-        /* LABEL CSS */
+        /* --- LABEL CARD (10x7cm) --- */
         .label-card {
             background: white;
             border: 1px solid #000;
@@ -106,40 +156,16 @@
             padding: 0.5cm;
         }
 
-        .label-key {
-            font-weight: 700;
-            color: #000;
-        }
+        .label-key { font-weight: 700; color: #000; }
+        .header-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+        .label-row { margin-bottom: 5px; }
 
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 5px;
-        }
-
-        .label-row {
-            margin-bottom: 5px;
-        }
-
+        /* --- PRINT MEDIA --- */
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .controls {
-                display: none;
-            }
-            .labels-grid {
-                display: block;
-            }
-            .label-card {
-                float: left;
-                margin: 0.2cm;
-                page-break-inside: avoid;
-                border: 1px solid #000;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .controls { display: none; }
+            .labels-grid { display: block; }
+            .label-card { float: left; margin: 0.2cm; page-break-inside: avoid; border: 1px solid #000; }
         }
     </style>
 </head>
@@ -147,28 +173,62 @@
 
     <div id="app">
         <div class="controls">
-            <h2>Generador de Etiquetas</h2>
+            <h2 class="header-title">Generador de Etiquetas</h2>
 
+            <!-- PERSISTENT COLLECTOR INPUT -->
             <div class="input-group">
-                <label>Colector (Valor Global):</label>
-                <input type="text" v-model="globalCollector">
+                <label>Colector</label>
+                <input type="text" v-model="globalCollector" placeholder="Nombre del Colector">
             </div>
 
+            <!-- DATA INPUT AREA -->
             <div class="input-group">
-                <label>Importar Datos:</label>
-                <div style="font-size: 0.85em; color: #666; margin-bottom: 5px;">
-                    Columnas: <strong>Número | Familia | Nombre Científico | Nombre Vulgar | Fecha | Lugar | Observación</strong>
+                <label>Importar Datos</label>
+
+                <!-- Tab 1: Paste -->
+                <textarea
+                    v-if="inputMode === 'paste'"
+                    v-model="pasteInput"
+                    placeholder="Pegar celdas desde Excel/Google Sheets aquí..."
+                    @paste="handlePaste"
+                ></textarea>
+
+                <!-- Tab 2: Drag & Drop File -->
+                <div
+                    v-else
+                    class="drop-zone"
+                    :class="{ 'drag-over': isDragging }"
+                    @dragover.prevent="isDragging = true"
+                    @dragleave.prevent="isDragging = false"
+                    @drop.prevent="handleDrop"
+                    @click="triggerFileSelect"
+                >
+                    <p>Arrastra tu CSV aquí o haz clic para buscar</p>
+                    <input ref="fileInput" type="file" class="hidden-input" @change="handleFileSelect" accept=".csv">
                 </div>
-                <textarea v-model="pasteInput" placeholder="Pegar datos aquí..."></textarea>
-                <button class="secondary" @click="processPaste">Generar</button>
-                <div style="margin-top: 10px;">
-                    <input type="file" @change="handleFileUpload" accept=".csv">
+
+                <!-- Input Mode Toggles -->
+                <div class="btn-group">
+                    <button class="btn-primary" @click="processData" :disabled="!hasData">Generar Etiquetas</button>
+                    <button class="btn-outline" @click="toggleMode">
+                        {{ inputMode === 'paste' ? 'Usar Archivo CSV' : 'Pegar Texto' }}
+                    </button>
+                    <button class="btn-outline" @click="clear" v-if="labels.length > 0">Limpiar</button>
                 </div>
             </div>
 
-            <button class="print" @click="print">🖨️ Imprimir</button>
+            <!-- MAPPING DIAGNOSTICS -->
+            <div class="status-panel" v-if="labels.length > 0">
+                <div class="status-item" v-for="(found, col) in columnStatus" :key="col">
+                    <span class="status-dot" :class="found ? 'found' : 'missing'"></span>
+                    <span style="text-transform: capitalize;">{{ col }}</span>
+                </div>
+            </div>
+
+            <button class="btn-secondary" style="width: 100%; margin-top: 20px;" @click="print">🖨️ Imprimir</button>
         </div>
 
+        <!-- LABELS OUTPUT -->
         <div class="labels-grid">
             <div class="label-card" v-for="(label, index) in labels" :key="index">
                 <div class="header-row">
@@ -192,39 +252,76 @@
     </div>
 
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, computed, watch, onMounted } = Vue;
 
         createApp({
             setup() {
-                const globalCollector = ref('Juan Perez');
+                // --- STATE ---
+                const globalCollector = ref('');
                 const pasteInput = ref('');
                 const labels = ref([]);
+                const inputMode = ref('paste'); // 'paste' | 'file'
+                const isDragging = ref(false);
+                const fileInput = ref(null);
 
+                // Diagnostic state to show user which columns were found
+                const columnStatus = ref({
+                    numero: false, familia: false, cientifico: false,
+                    vulgar: false, fecha: false, lugar: false, obs: false
+                });
+
+                // --- PERSISTENCE ---
+                onMounted(() => {
+                    const saved = localStorage.getItem('label_collector');
+                    if (saved) globalCollector.value = saved;
+                });
+
+                watch(globalCollector, (newVal) => {
+                    localStorage.setItem('label_collector', newVal);
+                });
+
+                // --- COMPUTED ---
+                const hasData = computed(() => {
+                    if (inputMode.value === 'paste') return pasteInput.value.length > 5;
+                    return false; // File mode auto-processes on drop
+                });
+
+                // --- ACTIONS ---
                 const print = () => window.print();
+                const toggleMode = () => inputMode.value = inputMode.value === 'paste' ? 'file' : 'paste';
+                const clear = () => { labels.value = []; pasteInput.value = ''; };
+                const triggerFileSelect = () => fileInput.value.click();
 
-                const handleFileUpload = (e) => {
-                    const file = e.target.files[0];
+                // --- FILE HANDLERS ---
+                const handleFileSelect = (e) => processFile(e.target.files[0]);
+                const handleDrop = (e) => {
+                    isDragging.value = false;
+                    processFile(e.dataTransfer.files[0]);
+                };
+
+                const processFile = (file) => {
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => parseData(e.target.result, ',');
+                    reader.onload = (e) => parseAndGenerate(e.target.result, ',');
                     reader.readAsText(file);
                 };
 
-                const processPaste = () => {
-                    if (!pasteInput.value.trim()) return alert("Pega los datos primero.");
-                    parseData(pasteInput.value, '\t');
+                const processData = () => {
+                    if (inputMode.value === 'paste') parseAndGenerate(pasteInput.value, '\t');
                 };
 
-                const parseData = (rawText, fallbackDelimiter) => {
+                // --- PARSING CORE ---
+                const parseAndGenerate = (rawText, fallbackDelimiter) => {
                     const lines = rawText.split(/\r\n|\n/);
-                    if (lines.length < 2) return;
+                    if (lines.length < 2) return alert("El archivo parece vacío o sin cabeceras");
 
+                    // 1. Detect Delimiter
                     let delimiter = fallbackDelimiter;
                     if (lines[0].indexOf('\t') > -1) delimiter = '\t';
                     else if (lines[0].indexOf(',') > -1) delimiter = ',';
 
+                    // 2. Map Headers
                     const headers = lines[0].split(delimiter).map(h => h.trim());
-
                     const map = {
                         numero: findIndex(headers, 'Número'),
                         familia: findIndex(headers, 'Familia'),
@@ -235,6 +332,10 @@
                         obs: findIndex(headers, 'Observación')
                     };
 
+                    // 3. Update Status Diagnostics
+                    Object.keys(map).forEach(k => columnStatus.value[k] = map[k] !== -1);
+
+                    // 4. Transform Data
                     labels.value = lines.slice(1).map(line => {
                         if (!line.trim()) return null;
                         const d = parseCSVRow(line, delimiter);
@@ -254,6 +355,10 @@
                     }).filter(Boolean);
                 };
 
+                // --- UTILS ---
+                const findIndex = (headers, key) => headers.findIndex(h => h.toLowerCase().includes(key.toLowerCase()));
+                const safeGet = (arr, idx) => (idx === -1 || !arr[idx]) ? '' : arr[idx];
+
                 const splitSciName = (fullName) => {
                     if (!fullName) return { italic: '', normal: '' };
                     const words = fullName.split(' ');
@@ -263,9 +368,6 @@
                         normal: words.slice(2).join(' ')
                     };
                 };
-
-                const findIndex = (headers, key) => headers.findIndex(h => h.toLowerCase().includes(key.toLowerCase()));
-                const safeGet = (arr, idx) => (idx === -1 || !arr[idx]) ? '' : arr[idx];
 
                 const parseCSVRow = (text, delimiter) => {
                     const d = delimiter === '\t' ? '\\t' : ',';
@@ -281,7 +383,11 @@
                     return a;
                 };
 
-                return { globalCollector, pasteInput, labels, processPaste, handleFileUpload, print };
+                return {
+                    globalCollector, pasteInput, labels, inputMode, isDragging, fileInput, columnStatus, hasData,
+                    processData, toggleMode, clear, print,
+                    handleFileSelect, handleDrop, triggerFileSelect
+                };
             }
         }).mount('#app');
     </script>
