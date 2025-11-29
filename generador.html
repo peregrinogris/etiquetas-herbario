@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Etiquetas (10x7cm)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0e0e0; /* Darker background to see white labels better */
+            padding: 20px;
+            color: #333;
+        }
+
+        /* Controls Area */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            width: 80%;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Container for the sheet */
+        #labels-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px; /* Space between labels on screen */
+            justify-content: center;
+        }
+
+        /* --- THE LABEL STYLING --- */
+        .label-card {
+            background: white;
+            border: 1px solid #000;
+
+            /* EXACT DIMENSIONS */
+            width: 10cm;
+            height: 7cm;
+
+            /* INNER PADDING */
+            padding: 0.5cm;
+
+            /* Creates the box model so padding is included in the 10x7 size */
+            box-sizing: border-box;
+
+            font-family: 'EB Garamond', serif;
+            font-size: 16px; /* Slightly smaller font to ensure fit in 7cm height */
+            line-height: 1.3;
+            overflow: hidden; /* Hide overflow if text is too long */
+            position: relative;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Screen only shadow */
+        }
+
+        .label-row {
+            margin-bottom: 5px;
+        }
+
+        .label-key {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .controls {
+                display: none;
+            }
+            #labels-container {
+                gap: 0;
+                display: block; /* Let browser flow them naturally */
+            }
+            .label-card {
+                box-shadow: none;
+                float: left; /* Tries to pack them side by side */
+                margin: 0.2cm; /* Tiny margin for cutting */
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>Generador de Etiquetas (Formato 10x7 cm)</h2>
+        <p>1. Sube tu CSV (separado por comas).</p>
+        <input type="file" id="csvInput" accept=".csv">
+        <br><br>
+        <button onclick="window.print()">Imprimir</button>
+    </div>
+
+    <div id="labels-container"></div>
+
+    <script>
+        document.getElementById('csvInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        function processCSV(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            const headers = lines[0].split(',').map(h => h.trim());
+            const container = document.getElementById('labels-container');
+            container.innerHTML = '';
+
+            const map = {
+                colector: headers.indexOf('Colector'),
+                numero: headers.indexOf('Nº'),
+                familia: headers.indexOf('Familia'),
+                cientifico: headers.indexOf('Nombre Científico'),
+                vulgar: headers.indexOf('Nombre Vulgar'),
+                fecha: headers.indexOf('Fecha'),
+                lugar: headers.indexOf('Lugar de Colección'),
+                obs: headers.indexOf('Observación')
+            };
+
+            for (let i = 1; i < lines.length; i++) {
+                const rowRaw = lines[i];
+                if (!rowRaw.trim()) continue;
+
+                const data = parseCSVRow(rowRaw);
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'label-card';
+
+                // Process Scientific Name specifically
+                const rawSciName = safeGet(data, map.cientifico);
+                const formattedSciName = formatScientificName(rawSciName);
+
+                labelDiv.innerHTML = `
+                    <div class="header-row">
+                        <span><span class="label-key">Colector:</span> ${safeGet(data, map.colector)}</span>
+                        <span><span class="label-key">Nº:</span> ${safeGet(data, map.numero)}</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label-key">Familia:</span> ${safeGet(data, map.familia)}
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label-key">Nombre Científico:</span>
+                        <span>${formattedSciName}</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label-key">Nombre Vulgar:</span> ${safeGet(data, map.vulgar)}
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label-key">Fecha y Lugar de Colección:</span> ${safeGet(data, map.fecha)}. ${safeGet(data, map.lugar)}
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label-key">Observación:</span> ${safeGet(data, map.obs)}
+                    </div>
+                `;
+
+                container.appendChild(labelDiv);
+            }
+        }
+
+        // Logic: Italicize only the first 2 words
+        function formatScientificName(fullName) {
+            if (!fullName) return '';
+
+            const words = fullName.split(' ');
+
+            // If less than 2 words, just italicize what we have
+            if (words.length <= 2) {
+                return `<i>${fullName}</i>`;
+            }
+
+            // Slice first two words for italics
+            const italicPart = words.slice(0, 2).join(' ');
+            // The rest remains normal
+            const normalPart = words.slice(2).join(' ');
+
+            return `<i>${italicPart}</i> ${normalPart}`;
+        }
+
+        function safeGet(rowArray, index) {
+            if (index === -1 || !rowArray[index]) return '';
+            return rowArray[index].replace(/^"|"$/g, '');
+        }
+
+        function parseCSVRow(text) {
+            const re_value = /(?!\s*$)\s*(?:'([^']*)'|"([^"]*)"|([^,'"]*))\s*(?:,|$)/g;
+            const a = [];
+            text.replace(re_value, function(m0, m1, m2, m3) {
+                if (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+                else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+                else if (m3 !== undefined) a.push(m3);
+                return '';
+            });
+            if (/,\s*$/.test(text)) a.push('');
+            return a;
+        }
+    </script>
+</body>
+</html>
