@@ -175,6 +175,31 @@
             font-family: 'Segoe UI', sans-serif;
             max-width: 21cm;
             margin: 0 auto;
+            break-after: page;
+            page-break-after: always; /* Forces new page after list */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .print-summary h1 {
+            font-size: 18pt;
+            color: #000;
+            break-after: avoid;
+        }
+
+        /* Two Column Layout */
+        .print-summary ol {
+            font-size: 10pt; /* Smaller font for checklist */
+            line-height: 1.5;
+            color: #000;
+            column-width: 5cm;
+            column-gap: 1cm;
+        }
+
+        .print-summary li {
+            margin-bottom: 2px;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
 
         /* --- LABEL GRID --- */
@@ -224,33 +249,6 @@
             /* Summary Page Logic */
             .print-summary {
                 display: block;
-                break-after: page;
-                page-break-after: always; /* Forces new page after list */
-                padding: 1cm; /* Reduced padding for landscape */
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .print-summary h1 {
-                font-size: 18pt;
-                color: #000;
-                margin-bottom: 0.2cm;
-                break-after: avoid;
-                border-bottom: 2px solid black;
-            }
-
-            /* Two Column Layout */
-            .print-summary ol {
-                font-size: 10pt; /* Smaller font for checklist */
-                line-height: 1.5;
-                color: #000;
-                column-count: 2;
-                column-gap: 1cm;
-                margin-top: 0;
-            }
-            .print-summary li {
-                margin-bottom: 2px;
-                break-inside: avoid;
-                page-break-inside: avoid;
             }
 
             .labels-grid {
