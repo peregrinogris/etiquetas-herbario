@@ -338,7 +338,7 @@
             <div class="input-group">
                 <label>Importar Datos:</label>
                 <div style="font-size: 0.85em; color: #666; margin-bottom: 5px;">
-                    Columnas: <strong>Número | Familia | Nombre Científico | Nombre Vulgar | Fecha | Lugar | Observación</strong>
+                    Columnas: <strong>Número | Familia | Nombre Científico | Nombre Vulgar | Fecha | Lugar | Observación | Nombre Científico Actualizado (Opcional)</strong>
                 </div>
 
                 <!-- Tab 1: Paste -->
@@ -395,8 +395,14 @@
             <ol>
                 <h1>Orden de entrega</h1>
                 <li v-for="label in labels" :key="label.numero">
-                    <!-- Scientific Name -->
+                    <!-- Updated Name -->
                     <i>{{ label.scientificName }}</i>{{ label.authors ? ' ' + label.authors : '' }}
+
+                    <!-- Old Name (Synonym) -->
+                    <span v-if="label.synonymName">
+                        (=<i>{{ label.synonymName }}</i>{{ label.synonymAuthors ? ' ' + label.synonymAuthors : '' }})
+                    </span>
+
                     <!-- Number at end -->
                     <span style="color: #666; font-size: 0.9em; margin-left: 5px;">#{{ label.numero }}</span>
                 </li>
@@ -415,7 +421,12 @@
                 <div class="label-row">
                     <span class="label-key">Nombre Científico: </span>
                     <span>
+                        <!-- Main Name (Updated or Original) -->
                         <i>{{ label.scientificName }}</i>{{ label.authors ? ' ' + label.authors : '' }}
+                        <!-- Synonym (Old Name) if updated exists -->
+                        <span v-if="label.synonymName">
+                            (=<i>{{ label.synonymName }}</i>{{ label.synonymAuthors ? ' ' + label.synonymAuthors : '' }})
+                        </span>
                     </span>
                 </div>
 
@@ -456,6 +467,7 @@
                 // Diagnostic state to show user which columns were found
                 const columnStatus = ref({
                     numero: false, familia: false, cientifico: false,
+                    updatedSci: false,
                     vulgar: false, fecha: false, lugar: false, obs: false
                 });
 
@@ -554,6 +566,7 @@
                         numero: findIndex(headers, 'Número'),
                         familia: findIndex(headers, 'Familia'),
                         cientifico: findIndex(headers, 'Nombre Científico'),
+                        updatedSci: findIndex(headers, 'Nombre Científico Actualizado'),
                         vulgar: findIndex(headers, 'Nombre Vulgar'),
                         fecha: findIndex(headers, 'Fecha'),
                         lugar: findIndex(headers, 'Lugar'),
@@ -569,13 +582,28 @@
                         const d = parseCSVRow(line, delimiter);
 
                         const fullSciName = safeGet(d, map.cientifico);
-                        const sciParts = splitSciName(fullSciName);
+                        const updatedSciName = safeGet(d, map.updatedSci); // Get Updated Name
+
+                        // Determine Primary (Updated or Old) and Secondary (Old or null)
+                        let primary, secondary;
+                        if (updatedSciName) {
+                            primary = splitSciName(updatedSciName);
+                            secondary = splitSciName(fullSciName); // Old name becomes secondary
+                        } else {
+                            primary = splitSciName(fullSciName);
+                            secondary = null;
+                        }
 
                         return {
                             numero: safeGet(d, map.numero),
                             familia: safeGet(d, map.familia),
-                            scientificName: sciParts.name,
-                            authors: sciParts.authors,
+                            // Primary Name Fields
+                            scientificName: primary.name,
+                            authors: primary.authors,
+                            // Secondary Name Fields (Synonym)
+                            synonymName: secondary ? secondary.name : null,
+                            synonymAuthors: secondary ? secondary.authors : null,
+
                             vulgar: safeGet(d, map.vulgar),
                             fechaLugar: [safeGet(d, map.fecha), safeGet(d, map.lugar)].filter(Boolean).join('. '),
                             obs: safeGet(d, map.obs)
