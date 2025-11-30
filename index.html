@@ -470,7 +470,7 @@
                 // Diagnostic state to show user which columns were found
                 const columnStatus = ref({
                     numero: false, familia: false, cientifico: false,
-                    updatedSci: false,
+                    cientificoAct: false,
                     vulgar: false, fecha: false, lugar: false, obs: false
                 });
 
@@ -582,7 +582,7 @@
                         numero: findIndex(headers, 'Número'),
                         familia: findIndex(headers, 'Familia'),
                         cientifico: findIndex(headers, 'Nombre Científico'),
-                        updatedSci: findIndex(headers, 'Nombre Científico Actualizado'),
+                        cientificoAct: findIndex(headers, 'Nombre Científico Actualizado'),
                         vulgar: findIndex(headers, 'Nombre Vulgar'),
                         fecha: findIndex(headers, 'Fecha'),
                         lugar: findIndex(headers, 'Lugar'),
@@ -598,7 +598,7 @@
                         const d = parseCSVRow(line, delimiter);
 
                         const fullSciName = safeGet(d, map.cientifico);
-                        const updatedSciName = safeGet(d, map.updatedSci); // Get Updated Name
+                        const updatedSciName = safeGet(d, map.cientificoAct); // Get Updated Name
 
                         // Determine Primary (Updated or Old) and Secondary (Old or null)
                         let primary, secondary;
