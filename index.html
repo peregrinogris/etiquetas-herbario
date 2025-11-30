@@ -33,6 +33,9 @@
             --lbl-border-s: solid;
             --lbl-font: 'EB Garamond', serif;
             --lbl-font-size: 16px;
+
+            /* Dynamic Summary Variables */
+            --summary-col-width: 10cm;
         }
 
         body {
@@ -187,12 +190,12 @@
             break-after: avoid;
         }
 
-        /* Two Column Layout */
+        /* Column Layout Controlled by CSS Variable */
         .print-summary ol {
             font-size: 10pt; /* Smaller font for checklist */
             line-height: 1.5;
             color: #000;
-            column-width: 5cm;
+            column-width: var(--summary-col-width);
             column-gap: 1cm;
         }
 
@@ -499,6 +502,11 @@
                     updateRootStyles();
                 }, { deep: true });
 
+                // Watch labels to update dynamic summary layout
+                watch(labels, () => {
+                    updateRootStyles();
+                });
+
                 // --- COMPUTED ---
                 const hasData = computed(() => {
                     if (inputMode.value === 'paste') return pasteInput.value.length > 5;
@@ -509,6 +517,13 @@
                 const updateRootStyles = () => {
                     const s = settings.value;
                     const root = document.documentElement;
+
+                    // Dynamic Summary Width Calculation
+                    const count = labels.value.length;
+                    let summaryWidth = '10cm'; // Default < 25
+                    if (count > 50) summaryWidth = '5cm';
+                    else if (count >= 25) summaryWidth = '8cm';
+
                     // Batch update via cssText on root element
                     root.style.cssText = `
                         --lbl-width: ${s.width}cm;
@@ -518,6 +533,7 @@
                         --lbl-border-s: ${s.borderStyle};
                         --lbl-font: ${s.fontFamily};
                         --lbl-font-size: ${s.fontSize}px;
+                        --summary-col-width: ${summaryWidth};
                     `;
                 };
 
