@@ -525,7 +525,12 @@
                 const processFile = (file) => {
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => parseAndGenerate(e.target.result, ',');
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        pasteInput.value = content;
+                        inputMode.value = 'paste'; // Switch view to textarea
+                        parseAndGenerate(content, ','); // Auto-trigger generation
+                    };
                     reader.readAsText(file);
                 };
 
