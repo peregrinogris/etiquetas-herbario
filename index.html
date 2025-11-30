@@ -396,7 +396,7 @@
                 <h1>Orden de entrega</h1>
                 <li v-for="label in labels" :key="label.numero">
                     <!-- Scientific Name -->
-                    <i>{{ label.sciNameItalic }}</i>{{ label.sciNameNormal ? ' ' + label.sciNameNormal : '' }}
+                    <i>{{ label.scientificName }}</i>{{ label.authors ? ' ' + label.authors : '' }}
                     <!-- Number at end -->
                     <span style="color: #666; font-size: 0.9em; margin-left: 5px;">#{{ label.numero }}</span>
                 </li>
@@ -415,7 +415,7 @@
                 <div class="label-row">
                     <span class="label-key">Nombre Científico: </span>
                     <span>
-                        <i>{{ label.sciNameItalic }}</i>{{ label.sciNameNormal ? ' ' + label.sciNameNormal : '' }}
+                        <i>{{ label.scientificName }}</i>{{ label.authors ? ' ' + label.authors : '' }}
                     </span>
                 </div>
 
@@ -574,8 +574,8 @@
                         return {
                             numero: safeGet(d, map.numero),
                             familia: safeGet(d, map.familia),
-                            sciNameItalic: sciParts.italic,
-                            sciNameNormal: sciParts.normal,
+                            scientificName: sciParts.name,
+                            authors: sciParts.authors,
                             vulgar: safeGet(d, map.vulgar),
                             fechaLugar: [safeGet(d, map.fecha), safeGet(d, map.lugar)].filter(Boolean).join('. '),
                             obs: safeGet(d, map.obs)
@@ -583,12 +583,12 @@
                     })
                     .filter(Boolean)
                     .sort((a, b) => {
+                        // First sort by family
                         const famDiff = (a.familia || '').localeCompare(b.familia || '');
                         if (famDiff !== 0) return famDiff;
 
-                        const sciA = (a.sciNameItalic + ' ' + a.sciNameNormal).trim();
-                        const sciB = (b.sciNameItalic + ' ' + b.sciNameNormal).trim();
-                        return sciA.localeCompare(sciB);
+                        // Then do full sort inside the family
+                        return a.scientificName.localeCompare(b.scientificName);
                     });
                 };
 
@@ -597,12 +597,12 @@
                 const safeGet = (arr, idx) => (idx === -1 || !arr[idx]) ? '' : arr[idx];
 
                 const splitSciName = (fullName) => {
-                    if (!fullName) return { italic: '', normal: '' };
+                    if (!fullName) return { name: '', authors: '' };
                     const words = fullName.split(' ');
-                    if (words.length <= 2) return { italic: fullName, normal: '' };
+                    if (words.length <= 2) return { name: fullName, authors: '' };
                     return {
-                        italic: words.slice(0, 2).join(' '),
-                        normal: words.slice(2).join(' ')
+                        name: words.slice(0, 2).join(' '),
+                        authors: words.slice(2).join(' ')
                     };
                 };
 
