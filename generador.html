@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Etiquetas para Herbario</title>
 
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="icon.png" sizes="512x512">
+
     <!-- LOAD ALL FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -270,6 +273,11 @@
 
     <div id="app">
         <div class="controls">
+            <!-- App Icon -->
+            <div style="text-align: center; margin-bottom: 10px;">
+                <img src="icon.png" alt="Logo" style="width: 80px; height: auto;">
+            </div>
+
             <div class="header-title">
                 <h1>Generador de Etiquetas para Herbario</h1>
                 <button class="btn-outline" @click="showSettings = !showSettings">
@@ -383,8 +391,8 @@
 
         <!-- PRINT SUMMARY PAGE (Hidden on Screen, dependent on checkbox) -->
         <div class="print-summary" v-if="labels.length > 0 && showSummary">
-            <h1>Orden de entrega</h1>
             <ol>
+                <h1>Orden de entrega</h1>
                 <li v-for="label in labels" :key="label.numero">
                     <!-- Scientific Name -->
                     <i>{{ label.sciNameItalic }}</i>{{ label.sciNameNormal ? ' ' + label.sciNameNormal : '' }}
