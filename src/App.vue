@@ -3,7 +3,7 @@
     <div class="controls">
       <!-- App Icon -->
       <div style="text-align: center; margin-bottom: 10px;">
-        <img src="./icon.png" alt="Logo" style="width: 80px; height: auto;">
+        <img src="/icon.png" alt="Logo" style="width: 80px; height: auto;">
       </div>
 
       <div class="header-title">
