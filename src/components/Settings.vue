@@ -26,7 +26,7 @@
     </div>
     <div class="setting-item">
       <label>Grosor Borde (px)</label>
-      <input type="number" v-model="settings.borderWidth" step="1">
+      <input type="number" v-model="settings.borderWidth" step="1" min="1">
     </div>
     <div class="setting-item">
       <label>Estilo Borde</label>
@@ -35,11 +35,13 @@
         <option value="dashed">Discontinuo</option>
         <option value="dotted">Punteado</option>
         <option value="double">Doble</option>
-        <option value="none">Ninguno</option>
       </select>
     </div>
     <div class="setting-item restore-button-container">
       <button class="btn-outline" style="width: 100%; font-size: 12px;" @click="resetSettings">Restaurar</button>
+    </div>
+    <div class="setting-item lucky-button-container">
+      <button class="btn-primary" style="width: 100%; font-size: 12px;" @click="randomizeSettings">🍀 ¡Sorpréndeme!</button>
     </div>
   </div>
 
@@ -52,10 +54,13 @@
 import Label from './Label.vue'; // Import the Label component
 import { ref } from 'vue';
 
-defineProps({
+const props = defineProps({
   settings: Object,
+  defaultSettings: Object,
   resetSettings: Function,
 })
+
+const emit = defineEmits(['update:settings']);
 
 // Sample data for the Label preview
 const sampleLabel = ref({
@@ -71,6 +76,40 @@ const sampleLabel = ref({
 });
 
 const sampleCollector = ref('Carlos Linneo');
+
+const fontFamilyOptions = [
+  "'EB Garamond', serif",
+  "'PT Serif', serif",
+  "'Courier Prime', monospace"
+];
+
+const borderStyleOptions = [
+  'solid',
+  'dashed',
+  'dotted',
+  'double'
+];
+
+const getRandomValue = (defaultValue, variance = 0.25) => {
+  const min = defaultValue * (1 - variance);
+  const max = defaultValue * (1 + variance);
+  return parseFloat((Math.random() * (max - min) + min).toFixed(1));
+};
+
+const randomizeSettings = () => {
+  const newSettings = { ...props.settings }; // Start with current settings
+
+  newSettings.fontFamily = fontFamilyOptions[Math.floor(Math.random() * fontFamilyOptions.length)];
+  newSettings.borderStyle = borderStyleOptions[Math.floor(Math.random() * borderStyleOptions.length)];
+
+  newSettings.width = getRandomValue(props.defaultSettings.width);
+  newSettings.height = getRandomValue(props.defaultSettings.height);
+  newSettings.padding = getRandomValue(props.defaultSettings.padding);
+  newSettings.borderWidth = Math.abs(Math.round(getRandomValue(props.defaultSettings.borderWidth, 8))); // Border width in px, so round it
+  newSettings.fontSize = Math.round(getRandomValue(props.defaultSettings.fontSize)); // Font size in px, so round it
+
+  emit('update:settings', newSettings);
+};
 </script>
 
 <style scoped>
@@ -106,6 +145,11 @@ const sampleCollector = ref('Carlos Linneo');
   justify-content: flex-end;
 }
 
+.lucky-button-container {
+  grid-column: span 2; /* Make the lucky button span two columns */
+  margin-top: 10px;
+}
+
 label {
   font-weight: 600;
   display: block;
@@ -134,6 +178,22 @@ input, select {
   font-size: 14px;
   font-weight: 600;
   transition: transform 0.1s;
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  transition: transform 0.1s;
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
 }
 
 .preview-container {

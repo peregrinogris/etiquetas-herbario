@@ -15,7 +15,12 @@
 
       <!-- SETTINGS MODAL -->
       <Modal v-if="showSettings" @close="showSettings = false">
-        <Settings :settings="settings" :reset-settings="resetSettings" />
+        <Settings
+          :settings="settings"
+          :default-settings="defaultSettings"
+          @update:settings="settings = $event"
+          :reset-settings="resetSettings"
+        />
       </Modal>
 
       <!-- PERSISTENT COLLECTOR INPUT -->
