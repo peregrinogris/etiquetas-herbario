@@ -8,13 +8,15 @@
 
       <div class="header-title">
         <h1>Generador de Etiquetas para Herbario</h1>
-        <button class="btn-outline" @click="showSettings = !showSettings">
-          {{ showSettings ? '✖ Cerrar' : '⚙️ Configuración' }}
+        <button class="btn-outline" @click="showSettings = true">
+          ⚙️ Configuración
         </button>
       </div>
 
-      <!-- SETTINGS PANEL -->
-      <Settings v-if="showSettings" :settings="settings" :reset-settings="resetSettings" />
+      <!-- SETTINGS MODAL -->
+      <Modal v-if="showSettings" @close="showSettings = false">
+        <Settings :settings="settings" :reset-settings="resetSettings" />
+      </Modal>
 
       <!-- PERSISTENT COLLECTOR INPUT -->
       <div class="input-group">
@@ -97,6 +99,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import Label from './components/Label.vue';
 import Settings from './components/Settings.vue';
 import PrintSummary from './components/PrintSummary.vue';
+import Modal from './components/Modal.vue';
 
 // --- STATE ---
 const globalCollector = ref('');
