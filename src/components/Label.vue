@@ -63,4 +63,13 @@ defineProps({
 .label-row {
   margin-bottom: 5px;
 }
+
+/* --- PRINT MEDIA --- */
+@media print {
+  .label-card {
+    margin: 0.2cm;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
 </style>

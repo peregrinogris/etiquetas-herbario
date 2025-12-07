@@ -542,11 +542,5 @@ button:active {
     min-height: 100vh; /* Only vertically center labels if they take up the whole page */
     margin: 0 auto;
   }
-
-  .label-card {
-    margin: 0.2cm;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
 }
 </style>

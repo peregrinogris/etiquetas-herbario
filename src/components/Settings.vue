@@ -42,13 +42,35 @@
       <button class="btn-outline" style="width: 100%; font-size: 12px;" @click="resetSettings">Restaurar</button>
     </div>
   </div>
+
+  <div class="preview-container">
+    <Label :label="sampleLabel" :collector="sampleCollector" />
+  </div>
 </template>
 
 <script setup>
+import Label from './Label.vue'; // Import the Label component
+import { ref } from 'vue';
+
 defineProps({
   settings: Object,
   resetSettings: Function,
 })
+
+// Sample data for the Label preview
+const sampleLabel = ref({
+  numero: '12',
+  familia: 'Lamiaceae',
+  scientificName: 'Salvia officinalis',
+  authors: 'L.',
+  synonymName: null,
+  synonymAuthors: null,
+  vulgar: 'Salvia, Salvia común',
+  fechaLugar: '15 Mayo 2023. Jardín Botánico',
+  obs: 'Planta de unos 50 cm de alto, con flores violáceas.'
+});
+
+const sampleCollector = ref('Carlos Linneo');
 </script>
 
 <style scoped>
@@ -112,5 +134,12 @@ input, select {
   font-size: 14px;
   font-weight: 600;
   transition: transform 0.1s;
+}
+
+.preview-container {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: center;
 }
 </style>
