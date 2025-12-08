@@ -96,6 +96,10 @@
     <div class="labels-grid">
       <Label v-for="(label, index) in labels" :key="index" :label="label" :collector="globalCollector"/>
     </div>
+
+    <footer class="app-footer">
+      Hecho con mucho 🧉 por <strong>Hernán Rodríguez Colmeiro</strong> - <a href="https://github.com/peregrinogris/etiquetas-herbario" target="_blank">Código Fuente</a>
+    </footer>
   </div>
 </template>
 
@@ -547,5 +551,16 @@ button:active {
     min-height: 100vh; /* Only vertically center labels if they take up the whole page */
     margin: 0 auto;
   }
+}
+
+.app-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.app-footer a {
+  color: #6c757d;
 }
 </style>
